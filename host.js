@@ -32,4 +32,8 @@ wss.on("connection", (ws, req) => {
         
     });
 
+    ws.on("close", () => {
+        clients[data["userid"]] = null;
+    });
+
 });
