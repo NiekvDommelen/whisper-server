@@ -29,7 +29,10 @@ wss.on("connection", (ws, req) => {
         data["sender"] = Object.keys(clients).find(key => clients[key] === ws);
 
         let messageData = JSON.stringify({"message": data["message"], "timestamp": data["timestamp"], "sender": data["sender"]});
-        
+       
+        clients[data["receiver"]].send(messageData);
+
+        messages.push(messageData);
     });
 
     ws.on("close", () => {
