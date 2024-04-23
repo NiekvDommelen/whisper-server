@@ -1,17 +1,37 @@
 {
   
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2",
-    "ws": "^8.16.0"
+  
+    
+  "axios": "^1.6.8",
+  
+    
+  "express": "^4.18.2",
+  
+    
+  "socket.io": "^4.7.2",
+  
+    
+  "ws": "^8.16.0"
+  
   },
+  
   "name": "chatapp-host",
+  
   "version": "1.0.0",
+  
   "description": "",
+  
   "main": "host.js",
+  
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  
+    
+  "test": "echo \"Error: no test specified\" && exit 1"
+  
   },
+  
   "author": "",
+  
   "license": "ISC"
 }
