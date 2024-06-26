@@ -17,7 +17,7 @@ class database {
             console.error("\x1b[31mAPI is unavailable\x1b[0m");
             }
         } catch (error) {
-            console.error("\x1b[31mError pinging API:\x1b[0m", error);
+            console.error("\x1b[31mAPI offline\x1b[0m");
         }
     }
 
@@ -28,7 +28,15 @@ class database {
      headers: {
          'Content-Type': 'application/x-www-form-urlencoded',
      },
-     data: messageData,
+     data: {
+        "sender": messageData["sender"],
+        "receiver": messageData["receiver"],
+        "message_data": messageData["message_data"],
+        "sender_message_data": messageData["sender_message_data"],
+        "timestamp": messageData["timestamp"],
+        "userid": messageData["sender"],
+        "token": messageData["token"]
+     },
 
     }).catch(error => {
         console.error("\x1b[31mError saving message:\x1b[0m", error);
@@ -39,12 +47,12 @@ class database {
 var clients = {};
 var messages = [];
 
-var host = "10.59.138.24";
+var host = "192.168.1.196";
 var server = http.createServer();
 
 server.listen(8080, host, function () {
     console.log("\x1b[32mserver online\x1b[0m");
-    console.log('Listening to port:  ' + 8080);
+    console.log('\x1b[33mListening to port:  ' + 8080 + '\x1b[0m');
 });
 
 const db = new database();
@@ -59,9 +67,10 @@ wss.on("connection", (ws, req) => {
     var client_port = ws._socket.remotePort;    
 
     // ___DEBUG___
-    console.log("___NEW CONNECTION___");
-    console.log("host: " + client_adress);
-    console.log("port: " + client_port);
+    console.log("\x1b[36m___NEW CONNECTION___\x1b[0m");
+    console.log("\x1b[36mHost:\x1b[0m", client_adress);
+    console.log("\x1b[36mPort:\x1b[0m", client_port);
+    
     
     
     ws.on("message", (message) => {
@@ -72,8 +81,9 @@ wss.on("connection", (ws, req) => {
         const day = String(date.getDate()).padStart(2, '0');
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2 , '0');
         
-        data["timestamp"] = `${year}-${month}-${day} ${hours}:${minutes}`;
+        data["timestamp"] = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
         if(data["status"] == "connecting"){
             console.log("___CONNECTION MSG___");
@@ -85,16 +95,28 @@ wss.on("connection", (ws, req) => {
         }
         
         data["sender"] = Object.keys(clients).find(key => clients[key] === ws);
-
+        console.log("message_data (bytes): " + data["message_data"].toString());
+        data["message_data"] = btoa(String.fromCharCode(...data["message_data"]));
+        data["sender_message_data"] = btoa(String.fromCharCode(...data["sender_message_data"]));
         // ___DEBUG___
         console.log("___NEW MESSAGE___");
         console.log("receiver: " + data["receiver"]);
+        console.log("sender: " + data["sender"]);
         console.log("timestamp: " + data["timestamp"]);
-        console.log("message_data: " + data["message_data"]);
-
-        let messageData = JSON.stringify({"message_data": data["message_data"], "timestamp": data["timestamp"], "sender": data["sender"]});
+        console.log("message_data: " + data["message_data"].toString());
+        console.log("sender_message_data: " + data["sender_message_data"].toString());
+    
+        let messageData = JSON.stringify({"message_data": data["message_data"], "sender_message_data": data["sender_message_data"], "timestamp": data["timestamp"], "sender": data["sender"], "receiver": data["receiver"]});
         
-        clients[data["receiver"]].send(messageData);
+        if(clients[data["receiver"]]){
+            clients[data["receiver"]].send(messageData);
+        }
+        
+
+        if(clients[data["sender"]]){
+            clients[data["sender"]].send(messageData);
+        }
+        
 
         db.saveMessage(data);
 
